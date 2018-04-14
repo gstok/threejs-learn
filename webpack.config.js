@@ -44,16 +44,10 @@ module.exports = {
   devtool: 'source-map',
 
   devServer: {
-    //这个有什么作用还要详细了解
-    //publicPath: path.join('/dist/'),
     open: true,
-
     inline: true,
-    
-    compress: true,
-    
+    compress: true, 
     historyApiFallback: true,
-
     //内容目录路径
     contentBase: path.join('dist'),
     //服务器端口
