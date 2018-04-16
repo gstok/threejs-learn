@@ -39,6 +39,8 @@ function addGeometry (scene) {
     let spotLight = new THREE.SpotLight(0xffffff);
     spotLight.position.set(-100, 200, -100);
     spotLight.castShadow = true;
+    spotLight.shadowMapHeight = 1024;
+    spotLight.shadowMapWidth = 1024;
     scene.add(spotLight);
 
     // let ambientLight = new THREE.AmbientLight(0xffffff);
@@ -85,6 +87,7 @@ function createPlane () {
     plane.rotation.x = -0.5 * Math.PI;
     plane.position.set(0, -1, 0);
     plane.receiveShadow = true;
+    plane.shadowDarkness = 0.9;
     return plane;
 }
 
@@ -92,8 +95,8 @@ function createPlane () {
 function init () {
     stats = initStats();
     gui = new dat.GUI();
-    gui.add(controls, 'rotationSpeed', 0, 0.05);
-    gui.add(controls, 'bouncingSpeed', 0, 0.05);
+    gui.add(controls, 'rotationSpeed', 0, 0.2);
+    gui.add(controls, 'bouncingSpeed', 0, 0.2);
 
 
     //获得作图区域的DOM元素
@@ -117,6 +120,7 @@ function init () {
     render.gammaInput = true;
     render.gammaOutput = true;
     render.shadowMap.enabled = true;
+    render.shadowMapType = THREE.PCFSoftShadowMap;
 
     //添加各种对象
     addGeometry(scene);
@@ -174,6 +178,3 @@ function initStats () {
     document.getElementById("three-area").appendChild(stats.domElement);
     return stats;
 }
-
-
-console.log(dat);
