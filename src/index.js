@@ -2,11 +2,15 @@
 
 import * as THREE from 'three';
 import OrbitControls from 'three-orbitcontrols';
+import ThreeStats from '../lib/three-stats.js';
+import { Stats } from 'threejs-utils';
 
 //容纳Three.js的作图区域
 let threeArea;
 //场景，摄像机，以及WebGL渲染器
 let scene, camera, render;
+//帧统计
+let stats;
 
 //向场景之中添加需展示的对象
 function addGeometry (scene) {
@@ -59,6 +63,9 @@ function addGeometry (scene) {
 
 //初始化
 function init () {
+    stats = initStats();
+
+
     //获得作图区域的DOM元素
     threeArea = document.getElementById("three-area");
 
@@ -109,9 +116,23 @@ function onWindowResize() {
 
 //响应更新画面的函数
 function animate() {
+    stats.update();
     requestAnimationFrame(animate);
     render.render(scene, camera);
 }
 
 window.onload = init;
 
+
+function initStats () {
+    let stats = new Stats();
+    stats.setMode(0);
+    stats.domElement.style.position = 'absolute';
+    stats.domElement.style.left = '0px';
+    stats.domElement.style.top = '0px';
+    document.getElementById("three-area").appendChild(stats.domElement);
+    return stats;
+}
+
+
+console.log(Stats);
