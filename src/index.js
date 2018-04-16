@@ -3,16 +3,21 @@
 import * as THREE from 'three';
 import OrbitControls from 'three-orbitcontrols';
 import ThreeStats from '../lib/three-stats.js';
-import { Stats } from 'threejs-utils';
+import { Stats, dat } from 'threejs-utils';
 
 //容纳Three.js的作图区域
 let threeArea;
 //场景，摄像机，以及WebGL渲染器
 let scene, camera, render;
-//帧统计
-let stats;
-
+//各种组件
+let stats, gui;
+//场景内的各种对象
 let plane, cube, sphere;
+//
+let controls = new function () {
+    this.rotationSpeed = 0.02;
+    this.bouncingSpeed = 0.03;
+}
 
 //向场景之中添加需展示的对象
 function addGeometry (scene) {
@@ -86,6 +91,9 @@ function createPlane () {
 //初始化
 function init () {
     stats = initStats();
+    gui = new dat.GUI();
+    gui.add(controls, 'rotationSpeed', 0, 0.05);
+    gui.add(controls, 'bouncingSpeed', 0, 0.05);
 
 
     //获得作图区域的DOM元素
@@ -114,11 +122,11 @@ function init () {
     addGeometry(scene);
 
     //配置轨道控制器
-    let controls = new OrbitControls(camera, render.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.25;
-    controls.enableZoom = true;
-    controls.autoRotate = true;
+    let orbitControls = new OrbitControls(camera, render.domElement);
+    orbitControls.enableDamping = true;
+    orbitControls.dampingFactor = 0.25;
+    orbitControls.enableZoom = true;
+    orbitControls.autoRotate = true;
 
     //添加到页面以及渲染各种事件响应
     threeArea.appendChild(render.domElement);
@@ -142,11 +150,11 @@ let step = 0;
 function animate() {
     stats.update();
 
-    cube.rotation.x += 0.02;
-    cube.rotation.y += 0.02;
-    cube.rotation.z += 0.02;
+    cube.rotation.x += controls.rotationSpeed;
+    cube.rotation.y += controls.rotationSpeed;
+    cube.rotation.z += controls.rotationSpeed;
     
-    step += 0.05;
+    step += controls.bouncingSpeed;
     sphere.position.x = 30 * Math.cos(step);
     sphere.position.y = 10 + Math.abs(20 * Math.sin(step));
     
@@ -168,4 +176,4 @@ function initStats () {
 }
 
 
-console.log(Stats);
+console.log(dat);
