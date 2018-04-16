@@ -15,32 +15,46 @@ function addGeometry (scene) {
     scene.add(axes);
     //在底部添加一个平面
     let planeGeometry = new THREE.PlaneGeometry(100, 100, 1, 1);
-    let planeMaterial = new THREE.MeshBasicMaterial({
+    let planeMaterial = new THREE.MeshStandardMaterial({
         color: 0x333333
     });
     let plane = new THREE.Mesh(planeGeometry, planeMaterial);
     //设置平面角度
     plane.rotation.x = -0.5 * Math.PI;
     plane.position.set(0, -1, 0);
+    plane.receiveShadow = true;
     scene.add(plane);
     //添加一个立方体
     let cubeGeometry = new THREE.BoxGeometry(10, 10, 10);
-    let cubeMaterial = new THREE.MeshBasicMaterial({
-        color: 0x8fBc8f,
-        wireframe: true
+    let cubeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x8fBc8f
     });
     let cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
     cube.position.set(10, 10, 10);
+    cube.castShadow = true;
     scene.add(cube);
     //添加一个球体
     let sphereGeometry = new THREE.SphereGeometry(10, 20, 20);
-    let sphereMaterial = new THREE.MeshBasicMaterial({
-        color: 0x7777ff,
-        wireframe: true
+    let sphereMaterial = new THREE.MeshStandardMaterial({
+        color: 0x7777ff
     });
     let sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
     sphere.position.set(30, 30, 30);
+    sphere.castShadow = true;
     scene.add(sphere);
+
+    //添加直线光源
+    let spotLight = new THREE.SpotLight(0xffffff);
+    spotLight.position.set(-100, 200, -100);
+    spotLight.castShadow = true;
+    scene.add(spotLight);
+
+    // let ambientLight = new THREE.AmbientLight(0xffffff);
+    // scene.add(ambientLight);
+
+    let hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x333333, 0.6);
+    hemisphereLight.position.set(0, 200, 0);
+    scene.add(hemisphereLight);
 }
 
 //初始化
