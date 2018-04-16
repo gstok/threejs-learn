@@ -12,39 +12,22 @@ let scene, camera, render;
 //帧统计
 let stats;
 
+let plane, cube, sphere;
+
 //向场景之中添加需展示的对象
 function addGeometry (scene) {
     //添加坐标系
     let axes = new THREE.AxesHelper(50);
     scene.add(axes);
+
     //在底部添加一个平面
-    let planeGeometry = new THREE.PlaneGeometry(100, 100, 1, 1);
-    let planeMaterial = new THREE.MeshStandardMaterial({
-        color: 0x333333
-    });
-    let plane = new THREE.Mesh(planeGeometry, planeMaterial);
-    //设置平面角度
-    plane.rotation.x = -0.5 * Math.PI;
-    plane.position.set(0, -1, 0);
-    plane.receiveShadow = true;
+    plane = createPlane();
     scene.add(plane);
     //添加一个立方体
-    let cubeGeometry = new THREE.BoxGeometry(10, 10, 10);
-    let cubeMaterial = new THREE.MeshStandardMaterial({
-        color: 0x8fBc8f
-    });
-    let cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-    cube.position.set(10, 10, 10);
-    cube.castShadow = true;
+    cube = createCube();
     scene.add(cube);
     //添加一个球体
-    let sphereGeometry = new THREE.SphereGeometry(10, 20, 20);
-    let sphereMaterial = new THREE.MeshStandardMaterial({
-        color: 0x7777ff
-    });
-    let sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-    sphere.position.set(30, 30, 30);
-    sphere.castShadow = true;
+    sphere = createSphere();
     scene.add(sphere);
 
     //添加直线光源
@@ -59,6 +42,45 @@ function addGeometry (scene) {
     let hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x333333, 0.6);
     hemisphereLight.position.set(0, 200, 0);
     scene.add(hemisphereLight);
+}
+
+
+//创建立方体
+function createCube () {
+    let cubeGeometry = new THREE.BoxGeometry(10, 10, 10);
+    let cubeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x8fBc8f
+    });
+    let cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+    cube.position.set(10, 10, 10);
+    cube.castShadow = true;
+    return cube; 
+}
+
+//创建球体
+function createSphere () {
+    let sphereGeometry = new THREE.SphereGeometry(10, 20, 20);
+    let sphereMaterial = new THREE.MeshStandardMaterial({
+        color: 0x7777ff
+    });
+    let sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+    sphere.position.set(30, 30, 30);
+    sphere.castShadow = true;
+    return sphere;
+}
+
+//创建面板平面
+function createPlane () {
+    let planeGeometry = new THREE.PlaneGeometry(100, 100, 1, 1);
+    let planeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x333333
+    });
+    let plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    //设置平面角度
+    plane.rotation.x = -0.5 * Math.PI;
+    plane.position.set(0, -1, 0);
+    plane.receiveShadow = true;
+    return plane;
 }
 
 //初始化
@@ -114,9 +136,20 @@ function onWindowResize() {
     render.setSize(width, height);
 }
 
+let step = 0;
+
 //响应更新画面的函数
 function animate() {
     stats.update();
+
+    cube.rotation.x += 0.02;
+    cube.rotation.y += 0.02;
+    cube.rotation.z += 0.02;
+    
+    step += 0.05;
+    sphere.position.x = 30 * Math.cos(step);
+    sphere.position.y = 10 + Math.abs(20 * Math.sin(step));
+    
     requestAnimationFrame(animate);
     render.render(scene, camera);
 }
