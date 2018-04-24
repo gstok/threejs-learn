@@ -11,7 +11,7 @@ let threeArea;
 //场景，摄像机，以及WebGL渲染器
 let scene, camera, render, asciiRender;
 //各种组件
-let stats, gui;
+let stats, datGui;
 //场景内的各种对象
 let plane, cube, sphere;
 //场景内的光源
@@ -45,13 +45,13 @@ function createSpotLight () {
 }
 //创建半球光源
 function createHemisphereLight () {
-    let hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x333333, 0.6);
+    let hemisphereLight = new THREE.HemisphereLight(0xfefefe, 0x333333, 0.6);
     hemisphereLight.position.set(controls.hmspX, controls.hmspY, controls.hmspZ);
     return hemisphereLight;
 }
 //创建环境光源
 function createAmbientLight () {
-    let ambientLight = new THREE.AmbientLight("#00ff00");
+    let ambientLight = new THREE.AmbientLight(0xfefefe);
     return ambientLight;
 }
 
@@ -74,7 +74,7 @@ function createPlane () {
 function createCamera () {
     let camera = new THREE.PerspectiveCamera(45, threeArea.clientWidth / threeArea.clientHeight, 0.1, 10000);
     camera.position.x = 0;
-    camera.position.y = 1000;
+    camera.position.y = 2000;
     camera.position.z = 0;
     return camera;
 }
@@ -93,8 +93,8 @@ function createRender () {
 
 
 
-//向场景之中添加需展示的对象
-function addGeometry (scene) {
+//向场景之中添加各种需展示的对象
+function addThings (scene) {
     //添加坐标系
     axes = new THREE.AxesHelper(50);
     scene.add(axes);
@@ -105,32 +105,56 @@ function addGeometry (scene) {
     spotLight = createSpotLight();
     scene.add(spotLight);
     //添加半球光源
-    // hemisphereLight = createHemisphereLight();
-    // scene.add(hemisphereLight);
+    hemisphereLight = createHemisphereLight();
+    scene.add(hemisphereLight);
     //添加环境光源
     ambientLight = createAmbientLight();
     scene.add(ambientLight);
 }
 
+//配置轨道控制器
+function orbitControlsConfig (camera, render) {
+    let orbitControls = new OrbitControls(camera, render.domElement);
+    orbitControls.enableDamping = true;
+    orbitControls.dampingFactor = 0.25;
+    orbitControls.enableZoom = true;
+    orbitControls.autoRotate = true;
+}
 
+//配置datGui
+function datGuiConfig (datGui) {
+    datGui.add(controls, 'rotationSpeed', 0, 0.2);
+    datGui.add(controls, 'bouncingSpeed', 0, 0.2);
+    datGui.add(controls, "spotX", -1000, 1000);
+    datGui.add(controls, "spotY", -1000, 1000);
+    datGui.add(controls, "spotZ", -1000, 1000);
+    datGui.add(controls, "hmspX", -1000, 1000);
+    datGui.add(controls, "hmspY", -1000, 1000);
+    datGui.add(controls, "hmspZ", -1000, 1000);
+}
 
+//配置Stats
+function statsConfig (stats) {
+    stats.setMode(0);
+    stats.domElement.style.position = 'absolute';
+    stats.domElement.style.left = '0px';
+    stats.domElement.style.top = '0px';
+    document.getElementById("three-area").appendChild(stats.domElement);
+}
 
 //初始化
 function init () {
-    stats = initStats();
+    //创建配置Stats
+    stats = new Stats();
+    statsConfig(stats);
 
-    gui = new dat.GUI();
-    gui.add(controls, 'rotationSpeed', 0, 0.2);
-    gui.add(controls, 'bouncingSpeed', 0, 0.2);
-    gui.add(controls, "spotX", -1000, 1000);
-    gui.add(controls, "spotY", -1000, 1000);
-    gui.add(controls, "spotZ", -1000, 1000);
-    gui.add(controls, "hmspX", -1000, 1000);
-    gui.add(controls, "hmspY", -1000, 1000);
-    gui.add(controls, "hmspZ", -1000, 1000);
+    //创建配置datGui
+    datGui = new dat.GUI();
+    datGuiConfig(datGui);
 
     //获得作图区域的DOM元素
     threeArea = document.getElementById("three-area");
+
     //创建场景
     scene = new THREE.Scene();
 
@@ -138,33 +162,28 @@ function init () {
     camera = createCamera();
     camera.lookAt(scene.position);
 
-    //创建渲染器
-    render = createRender();
-
     //添加各种对象
-    addGeometry(scene);
+    addThings(scene);
 
-    //添加到页面以及渲染各种事件响应
+    //创建添加渲染器
+    render = createRender();
     threeArea.appendChild(render.domElement);
 
-    //配置轨道控制器
-    let orbitControls = new OrbitControls(camera, render.domElement);
-    orbitControls.enableDamping = true;
-    orbitControls.dampingFactor = 0.25;
-    orbitControls.enableZoom = true;
-    orbitControls.autoRotate = true;
-
-
-    
+    //render工作，配置动画，响应事件
     render.render(scene, camera);
-    window.addEventListener('resize', onWindowResize, false);
     animate();
+    window.addEventListener("resize", () => {
+        onThreeResize(threeArea, camera, render);
+    }, false);
+
+    //轨道控制器配置
+    orbitControlsConfig(camera, render);
 }
 
-//响应窗体大小修改的函数
-function onWindowResize() {
-    let width = threeArea.clientWidth;
-    let height = threeArea.clientHeight;
+//响应绘制区域大小改变的函数
+function onThreeResize(dstDom, camera, render) {
+    let width = dstDom.clientWidth;
+    let height = dstDom.clientHeight;
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     render.setSize(width, height);
@@ -173,9 +192,7 @@ function onWindowResize() {
 //响应更新画面的函数
 function animate() {
     stats.update();
-
     spotLight.position.set(controls.spotX, controls.spotY, controls.spotZ);
-
     requestAnimationFrame(animate);
     render.render(scene, camera);
 }
@@ -183,12 +200,3 @@ function animate() {
 window.onload = init;
 
 
-function initStats () {
-    let stats = new Stats();
-    stats.setMode(0);
-    stats.domElement.style.position = 'absolute';
-    stats.domElement.style.left = '0px';
-    stats.domElement.style.top = '0px';
-    document.getElementById("three-area").appendChild(stats.domElement);
-    return stats;
-}
