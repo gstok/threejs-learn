@@ -4,11 +4,12 @@ import * as THREE from 'three';
 import OrbitControls from 'three-orbitcontrols';
 import ThreeStats from '../lib/three-stats.js';
 import { Stats, dat } from 'threejs-utils';
+import AsciiEffect from "three-asciieffect";
 
 //容纳Three.js的作图区域
 let threeArea;
 //场景，摄像机，以及WebGL渲染器
-let scene, camera, render;
+let scene, camera, render, asciiRender;
 //各种组件
 let stats, gui;
 //场景内的各种对象
@@ -101,7 +102,6 @@ function init () {
 
     //获得作图区域的DOM元素
     threeArea = document.getElementById("three-area");
-
     //创建场景
     scene = new THREE.Scene();
 
@@ -116,7 +116,7 @@ function init () {
     //创建WebGL渲染器
     render = new THREE.WebGLRenderer();
     render.setClearColor(0xf0f0f0);
-    render.setSize(threeArea.clientWidth, threeArea.clientHeight);
+
     render.gammaInput = true;
     render.gammaOutput = true;
     render.shadowMap.enabled = true;
@@ -125,16 +125,25 @@ function init () {
     //添加各种对象
     addGeometry(scene);
 
+    asciiRender = new AsciiEffect(render);
+
+    //添加到页面以及渲染各种事件响应
+    threeArea.appendChild(render.domElement);
+    //threeArea.appendChild(asciiRender.domElement);
+
     //配置轨道控制器
     let orbitControls = new OrbitControls(camera, render.domElement);
+    //let orbitControls = new OrbitControls(camera, asciiRender.domElement);
     orbitControls.enableDamping = true;
     orbitControls.dampingFactor = 0.25;
     orbitControls.enableZoom = true;
     orbitControls.autoRotate = true;
 
-    //添加到页面以及渲染各种事件响应
-    threeArea.appendChild(render.domElement);
+    render.setSize(threeArea.clientWidth, threeArea.clientHeight);
+    //asciiRender.setSize(threeArea.clientWidth, threeArea.clientHeight);
+    
     render.render(scene, camera);
+    //asciiRender.render(scene, camera);
     window.addEventListener('resize', onWindowResize, false);
     animate();
 }
@@ -145,7 +154,9 @@ function onWindowResize() {
     let height = threeArea.clientHeight;
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
+    
     render.setSize(width, height);
+    //asciiRender.setSize(width, height);
 }
 
 let step = 0;
@@ -163,7 +174,9 @@ function animate() {
     sphere.position.y = 10 + Math.abs(20 * Math.sin(step));
     
     requestAnimationFrame(animate);
+
     render.render(scene, camera);
+    //asciiRender.render(scene, camera);
 }
 
 window.onload = init;

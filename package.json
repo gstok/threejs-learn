@@ -18,6 +18,7 @@
     "html-webpack-plugin": "^3.2.0",
     "style-loader": "^0.20.3",
     "three": "^0.91.0",
+    "three-asciieffect": "^1.0.1",
     "three-orbitcontrols": "^2.0.0",
     "threejs-utils": "^0.1.3",
     "url-loader": "^1.0.1",
