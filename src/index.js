@@ -5,6 +5,7 @@ import OrbitControls from 'three-orbitcontrols';
 import ThreeStats from '../lib/three-stats.js';
 import { Stats, dat } from 'threejs-utils';
 import AsciiEffect from "three-asciieffect";
+import { last } from 'rxjs/operators';
 
 //容纳Three.js的作图区域
 let threeArea;
@@ -32,6 +33,51 @@ let controls = new function () {
     this.hmspX = 0;
     this.hmspY = 200;
     this.hmspZ = 0;
+
+    this.alert = () => {
+        alert("你好，世界");
+    },
+
+    this.numberOfObjects = 0;
+
+    this.addCube = () => {
+        let cubeSize = Math.ceil(Math.random() * 50) + 5;
+        let cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+        // let cubeMaterial = new THREE.MeshLambertMaterial({
+        //     color: 0x9355a0
+        // });
+        let cubeMaterial = new THREE.MeshStandardMaterial({
+            color: Math.floor(Math.random() * 0xffffff)
+        });
+        let cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+        cube.position.x = Math.random() * plane.geometry.parameters.width - 500;
+        cube.position.y = 100;
+        cube.position.z = Math.random() * plane.geometry.parameters.height - 500;
+
+        cube.name = "cube-" + scene.children.length;
+
+        console.log(cube.name);
+        console.log(plane.geometry.parameters.width);
+        scene.add(cube);
+
+        let result = scene.getObjectByName("cube-10");
+        console.log(result);
+
+        this.numberOfObjects = scene.children.length;
+    },
+
+    this.removeCube = () => {
+        let tmpList = Array.from(scene.children);
+        console.log(tmpList);
+        tmpList.reverse();
+        console.log(tmpList);
+        let lastCube = tmpList.find(item => item instanceof THREE.Mesh);
+        console.log(lastCube);
+        if (lastCube) {
+            scene.remove(lastCube);
+            this.numberOfObjects = scene.children.length;
+        }
+    }
 }
 
 //创建聚光灯光源
@@ -131,6 +177,10 @@ function datGuiConfig (datGui) {
     datGui.add(controls, "hmspX", -1000, 1000);
     datGui.add(controls, "hmspY", -1000, 1000);
     datGui.add(controls, "hmspZ", -1000, 1000);
+    datGui.add(controls, "alert");
+    datGui.add(controls, "addCube");
+    datGui.add(controls, "numberOfObjects").listen();
+    datGui.add(controls, "removeCube");
 }
 
 //配置Stats
