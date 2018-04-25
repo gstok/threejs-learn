@@ -62,6 +62,7 @@ let controls = new function () {
     this.addCustomGeometry = () => {
         console.log("添加自定义几何体");
 
+        //顶点坐标
         let vertices = [
             new THREE.Vector3(0, 0, 0),
             new THREE.Vector3(0, 100, 0),
@@ -70,14 +71,33 @@ let controls = new function () {
             new THREE.Vector3(0, 0, 100),
             new THREE.Vector3(0, 100, 100),
             new THREE.Vector3(100, 0, 100),
-            new THREE.Vector3(100, 100, 100)
+            new THREE.Vector3(100, 100, 100),
         ];
 
         let faces = [
-            new THREE.Face3(0, 1, 2),
-            new THREE.Face3(3, 2, 1),
-            new THREE.Face3(4, 5, 6),
-            new THREE.Face3(7, 6, 5)
+            //对面
+            new THREE.Face3(2, 1, 0),
+            new THREE.Face3(1, 2, 3),
+
+            //前面
+            new THREE.Face3(6, 5, 4),
+            new THREE.Face3(5, 6, 7),
+
+            //上面
+            new THREE.Face3(7, 1, 5),
+            new THREE.Face3(1, 7, 3),
+
+            //下面
+            new THREE.Face3(4, 0, 6),
+            new THREE.Face3(2, 6, 0),
+
+            //左面
+            new THREE.Face3(5, 0, 4),
+            new THREE.Face3(0, 5, 1),
+
+            //右面
+            new THREE.Face3(6, 3, 7),
+            new THREE.Face3(3, 6, 2)
         ];
 
         let geometry = new THREE.Geometry();
@@ -92,6 +112,8 @@ let controls = new function () {
         });
 
         let custom = new THREE.Mesh(geometry, material);
+
+        custom.position.set(100, 100, 100);
 
         scene.add(custom);
     },
