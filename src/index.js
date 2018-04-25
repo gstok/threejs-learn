@@ -204,7 +204,11 @@ function init () {
 
     //创建场景
     scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0xcccccc, 800, 3000);
+    //scene.fog = new THREE.Fog(0xcccccc, 800, 3000);
+    //另一种为场景添加雾化效果的方式
+    scene.fog = new THREE.FogExp2(0xcccccc, 0.001);
+
+    scene.overrideMaterial = new THREE.MeshLambertMaterial();
 
     //创建摄像机
     camera = createCamera();
