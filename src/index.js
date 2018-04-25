@@ -41,6 +41,61 @@ let controls = new function () {
 
     this.numberOfObjects = 0;
 
+
+    //添加圆筒对象
+    this.addCylinder = () => {
+        let radiusTop = Math.floor(Math.random() * 10 + 3);
+        let radiusBottom = Math.floor(Math.random() * 10 + 3);
+        let cylinderGeometry = new THREE.CylinderGeometry(radiusTop, radiusBottom, 100);
+        let cylinderMaterial = new THREE.MeshStandardMaterial({
+            color: Math.floor(Math.random() * 0xffffff)
+        });
+        let cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+        cylinder.position.x = Math.random() * plane.geometry.parameters.width - 500;
+        cylinder.position.y = 100;
+        cylinder.position.z = Math.random() * plane.geometry.parameters.height - 500;
+        cylinder.name = "cylinder-" + scene.children.length;
+        scene.add(cylinder);
+        this.numberOfObjects = scene.children.length;    
+    },
+
+    this.addCustomGeometry = () => {
+        console.log("添加自定义几何体");
+
+        let vertices = [
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(0, 100, 0),
+            new THREE.Vector3(100, 0, 0),
+            new THREE.Vector3(100, 100, 0),
+            new THREE.Vector3(0, 0, 100),
+            new THREE.Vector3(0, 100, 100),
+            new THREE.Vector3(100, 0, 100),
+            new THREE.Vector3(100, 100, 100)
+        ];
+
+        let faces = [
+            new THREE.Face3(0, 1, 2),
+            new THREE.Face3(3, 2, 1),
+            new THREE.Face3(4, 5, 6),
+            new THREE.Face3(7, 6, 5)
+        ];
+
+        let geometry = new THREE.Geometry();
+        geometry.vertices = vertices;
+        geometry.faces = faces;
+        geometry.computeFaceNormals();
+        //geometry.computeBoundingBox();
+        geometry.mergeVertices();
+
+        let material = new THREE.MeshStandardMaterial({
+            color: Math.floor(Math.random() * 0xffffff)
+        });
+
+        let custom = new THREE.Mesh(geometry, material);
+
+        scene.add(custom);
+    },
+
     //添加立方体
     this.addCube = () => {
         let cubeSize = Math.ceil(Math.random() * 50) + 10; 
@@ -89,6 +144,8 @@ function datGuiConfig (datGui) {
     datGui.add(controls, "numberOfObjects").listen();
     datGui.add(controls, "removeCube");
     datGui.add(controls, "outputObjects");
+    datGui.add(controls, "addCylinder");
+    datGui.add(controls, "addCustomGeometry");
 }
 
 //创建聚光灯光源
@@ -206,9 +263,12 @@ function init () {
     scene = new THREE.Scene();
     //scene.fog = new THREE.Fog(0xcccccc, 800, 3000);
     //另一种为场景添加雾化效果的方式
-    scene.fog = new THREE.FogExp2(0xcccccc, 0.001);
+    // scene.fog = new THREE.FogExp2(0xcccccc, 0.001);
 
-    scene.overrideMaterial = new THREE.MeshLambertMaterial();
+    //场景材质覆盖
+    // scene.overrideMaterial = new THREE.MeshLambertMaterial({
+    //     color: 0x445566
+    // });
 
     //创建摄像机
     camera = createCamera();
