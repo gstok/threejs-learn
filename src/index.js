@@ -6,6 +6,7 @@ import ThreeStats from '../lib/three-stats.js';
 import { Stats, dat } from 'threejs-utils';
 import AsciiEffect from "three-asciieffect";
 import { last } from 'rxjs/operators';
+import { scan } from 'rxjs/operator/scan';
 
 //容纳Three.js的作图区域
 let threeArea;
@@ -40,44 +41,54 @@ let controls = new function () {
 
     this.numberOfObjects = 0;
 
+    //添加立方体
     this.addCube = () => {
-        let cubeSize = Math.ceil(Math.random() * 50) + 5;
-        let cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-        // let cubeMaterial = new THREE.MeshLambertMaterial({
-        //     color: 0x9355a0
-        // });
+        let cubeSize = Math.ceil(Math.random() * 50) + 10; 
+        //创建立方体几何形状
+        let cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);  
+        //创建立方体材质
         let cubeMaterial = new THREE.MeshStandardMaterial({
             color: Math.floor(Math.random() * 0xffffff)
         });
+        //根据几何与材质创建网孔
         let cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
         cube.position.x = Math.random() * plane.geometry.parameters.width - 500;
         cube.position.y = 100;
         cube.position.z = Math.random() * plane.geometry.parameters.height - 500;
-
         cube.name = "cube-" + scene.children.length;
-
-        console.log(cube.name);
-        console.log(plane.geometry.parameters.width);
         scene.add(cube);
-
-        let result = scene.getObjectByName("cube-10");
-        console.log(result);
-
         this.numberOfObjects = scene.children.length;
     },
-
+    //删除立方体
     this.removeCube = () => {
-        let tmpList = Array.from(scene.children);
-        console.log(tmpList);
-        tmpList.reverse();
-        console.log(tmpList);
-        let lastCube = tmpList.find(item => item instanceof THREE.Mesh);
-        console.log(lastCube);
-        if (lastCube) {
-            scene.remove(lastCube);
+        let meshList = scene.children.filter(item => item instanceof THREE.Mesh &&
+                                                     item.geometry instanceof THREE.BoxGeometry);
+        if (meshList.length > 0) {
+            scene.remove(meshList[meshList.length - 1]);
             this.numberOfObjects = scene.children.length;
         }
+    },
+    //输出场景内所有对象
+    this.outputObjects = () => {
+        console.log(scene.children);
     }
+}
+
+//配置datGui
+function datGuiConfig (datGui) {
+    datGui.add(controls, 'rotationSpeed', 0, 0.2);
+    datGui.add(controls, 'bouncingSpeed', 0, 0.2);
+    datGui.add(controls, "spotX", -1000, 1000);
+    datGui.add(controls, "spotY", -1000, 1000);
+    datGui.add(controls, "spotZ", -1000, 1000);
+    datGui.add(controls, "hmspX", -1000, 1000);
+    datGui.add(controls, "hmspY", -1000, 1000);
+    datGui.add(controls, "hmspZ", -1000, 1000);
+    datGui.add(controls, "alert");
+    datGui.add(controls, "addCube");
+    datGui.add(controls, "numberOfObjects").listen();
+    datGui.add(controls, "removeCube");
+    datGui.add(controls, "outputObjects");
 }
 
 //创建聚光灯光源
@@ -119,9 +130,9 @@ function createPlane () {
 //创建摄像机
 function createCamera () {
     let camera = new THREE.PerspectiveCamera(45, threeArea.clientWidth / threeArea.clientHeight, 0.1, 10000);
-    camera.position.x = 0;
-    camera.position.y = 2000;
-    camera.position.z = 0;
+    camera.position.x = 500;
+    camera.position.y = 500;
+    camera.position.z = 500;
     return camera;
 }
 
@@ -167,21 +178,7 @@ function orbitControlsConfig (camera, render) {
     orbitControls.autoRotate = true;
 }
 
-//配置datGui
-function datGuiConfig (datGui) {
-    datGui.add(controls, 'rotationSpeed', 0, 0.2);
-    datGui.add(controls, 'bouncingSpeed', 0, 0.2);
-    datGui.add(controls, "spotX", -1000, 1000);
-    datGui.add(controls, "spotY", -1000, 1000);
-    datGui.add(controls, "spotZ", -1000, 1000);
-    datGui.add(controls, "hmspX", -1000, 1000);
-    datGui.add(controls, "hmspY", -1000, 1000);
-    datGui.add(controls, "hmspZ", -1000, 1000);
-    datGui.add(controls, "alert");
-    datGui.add(controls, "addCube");
-    datGui.add(controls, "numberOfObjects").listen();
-    datGui.add(controls, "removeCube");
-}
+
 
 //配置Stats
 function statsConfig (stats) {
@@ -207,6 +204,7 @@ function init () {
 
     //创建场景
     scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0xcccccc, 800, 3000);
 
     //创建摄像机
     camera = createCamera();
@@ -243,6 +241,15 @@ function onThreeResize(dstDom, camera, render) {
 function animate() {
     stats.update();
     spotLight.position.set(controls.spotX, controls.spotY, controls.spotZ);
+
+    scene.traverse((obj) => {
+        if (obj instanceof THREE.Mesh && obj.geometry instanceof THREE.BoxGeometry) {
+            obj.rotation.x += 0.01;
+            obj.rotation.y += 0.01;
+            obj.rotation.z += 0.01;
+        }
+    });
+
     requestAnimationFrame(animate);
     render.render(scene, camera);
 }
