@@ -63,6 +63,10 @@ class World {
         
         renderer.shadowMap.enabled = true;
         renderer.shadowMapEnabled = true;
+
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMapType = THREE.PCFSoftShadowMap;
+
         renderer.shadowMapType = THREE.PCFSoftShadowMap;
         this.threeArea.appendChild(renderer.domElement);
         return renderer;
@@ -200,8 +204,8 @@ class World {
             color: 0x2387d0
         });
         let box = new THREE.Mesh(boxGeometry, boxMaterial);
-
-        box.position.set(0, 52, 0);
+        box.castShadow = true;
+        box.position.set(0, 100, 0);
 
         return box;
 
@@ -244,7 +248,7 @@ class World {
     //创建聚光灯光源
     createSpotLight () {
         let spotLight = new THREE.SpotLight(0xffffff);
-        spotLight.position.set(0, 600, 400);
+        spotLight.position.set(-100, 600, 400);
         spotLight.castShadow = true;
         spotLight.shadowMapHeight = 1024;
         spotLight.shadowMapWidth = 1024;
