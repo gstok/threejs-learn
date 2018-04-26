@@ -4,16 +4,56 @@ import OrbitControls from 'three-orbitcontrols';
 import ThreeStats from '../lib/three-stats.js';
 import { Stats, dat } from 'threejs-utils';
 import AsciiEffect from "three-asciieffect";
+import ThreeSceneUtils from "../lib/ThreeSceneUtils";
 
 class World {
     constructor (domElement) {
-        //创建场景
-        this.scene = new THREE.Scene();
+
+        // this.mySceneUtils = {
+
+        //     createMultiMaterialObject: function ( geometry, materials ) {
+        
+        //         var group = new THREE.Group();
+        
+        //         for ( var i = 0, l = materials.length; i < l; i ++ ) {
+        
+        //             group.add( new THREE.Mesh( geometry, materials[ i ] ) );
+        
+        //         }
+        
+        //         return group;
+        
+        //     },
+        
+        //     detach: function ( child, parent, scene ) {
+        
+        //         child.applyMatrix( parent.matrixWorld );
+        //         parent.remove( child );
+        //         scene.add( child );
+        
+        //     },
+        
+        //     attach: function ( child, scene, parent ) {
+        
+        //         child.applyMatrix( new THREE.Matrix4().getInverse( parent.matrixWorld ) );
+        
+        //         scene.remove( child );
+        //         parent.add( child );
+        
+        //     }
+        
+        // };
+        
+
+
+
+
+
+
         //获得作图区域的DOM元素
         this.threeArea = domElement;
-        //创建Stats
-        this.stats = this.addStats(); 
-
+        //创建场景
+        this.scene = new THREE.Scene();
         //创建摄像机
         this.camera = this.createCamera();
         this.camera.lookAt(this.scene.position);
@@ -33,10 +73,22 @@ class World {
             this.onThreeResize();
         }, false);
 
+
+        //添加各种插件
+        this.addPlugin();
+    }
+
+
+    //添加各种插件
+    addPlugin () {
         //创建轨道控制器
         this.orbitControls = this.addOrbitControls();
-
+        //创建Stats
+        this.stats = this.addStats(); 
+    
         this.testNum = 30;
+        this.myObj = 50;
+        
         //创建datGui
         this.datGui = this.addDatGui();
     }
@@ -49,7 +101,8 @@ class World {
         renderer.setSize(this.threeArea.clientWidth, this.threeArea.clientHeight);
         renderer.gammaInput = true;
         renderer.gammaOutput = true;
-        renderer.shadowMap.enabled = true;
+        // renderer.shadowMap.enabled = true;
+        renderer.shadowMapEnabled = true;
         renderer.shadowMapType = THREE.PCFSoftShadowMap;
         this.threeArea.appendChild(renderer.domElement);
         return renderer;
@@ -62,9 +115,6 @@ class World {
         camera.position.z = 500;
         return camera;
     }
-
-
-
     //创建面板平面
     createPlane () {
         let planeGeometry = new THREE.PlaneGeometry(1000, 1000, 1, 1);
@@ -79,8 +129,6 @@ class World {
         plane.shadowDarkness = 0.9;
         return plane;
     }
-
-
     //添加Stats
     addStats () {
         let stats = new Stats();
@@ -96,7 +144,7 @@ class World {
         let datGui = new dat.GUI();
 
         datGui.add(this, "testNum", -100, 100);
-
+        datGui.add(this, "myObj");
         // datGui.add(this, "addCube");
         // datGui.add(this, "numberOfObjects").listen();
         // datGui.add(this, "removeCube");
@@ -131,8 +179,9 @@ class World {
 
     //响应更新画面的函数
     animate () {
-        this.stats.update();
-        // this.scene.traverse
+        if (this.stats) {
+            this.stats.update();
+        }
         requestAnimationFrame(() => {
             this.animate();
         });
@@ -140,6 +189,7 @@ class World {
     }
 
 
+    //创建坐标轴
     createAxis (size) {
         let axes = new THREE.AxesHelper(size);
         return axes;
@@ -154,7 +204,7 @@ class World {
         //在底部添加一个平面
         this.plane = this.createPlane();
         this.scene.add(this.plane);
-        //添加直线光源
+        //添加聚光灯光源
         this.spotLight = this.createSpotLight();
         this.scene.add(this.spotLight);
         //添加半球光源
@@ -163,12 +213,69 @@ class World {
         //添加环境光源
         this.ambientLight = this.createAmbientLight();
         this.scene.add(this.ambientLight);
+
+        this.custom = this.createCustomGeometry();
+        this.scene.add(this.custom);
+    }
+
+    faceBord3 (a, b, c) {
+        return [
+            new THREE.Face3(a, b, c),
+            new THREE.Face3(b, a, c)
+        ];
+    }
+
+    faceBord4 (a, b, c, d) {
+        return [
+            ...this.faceBord3(a, b, c),
+            ...this.faceBord3(b, c, d)
+        ];
+    }
+
+    //创建自定义几何体
+    createCustomGeometry () {
+        let vertices = [
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(100, 0, 0),
+            new THREE.Vector3(0, 0, 100),
+            new THREE.Vector3(100, 0, 100),
+            new THREE.Vector3(50, 80, 50)
+        ];
+
+        let faces = [
+            ...this.faceBord4(0, 1, 2, 3),
+            ...this.faceBord3(0, 1, 4),
+            ...this.faceBord3(1, 3, 4),
+            ...this.faceBord3(3, 2, 4),
+            ...this.faceBord3(0, 2, 4)
+        ];
+
+        let geometry = new THREE.Geometry();
+        geometry.vertices = vertices;
+        geometry.faces = faces;
+        geometry.computeFaceNormals();
+
+        let materials = [
+            new THREE.MeshStandardMaterial({
+                color: 0x9468e0
+            }),
+            new THREE.MeshBasicMaterial({
+                color: 0x000000,
+                wireframe: true
+            }),
+        ];
+        let custom = ThreeSceneUtils.createMultiMaterialObject(geometry, materials);
+        custom.children.forEach(item => {
+            item.castShadow = true;
+        });
+        //console.log(custom);
+        return custom;
     }
 
     //创建聚光灯光源
     createSpotLight () {
         let spotLight = new THREE.SpotLight(0xffffff);
-        spotLight.position.set(0, 400, 0);
+        spotLight.position.set(0, 400, 400);
         spotLight.castShadow = true;
         spotLight.shadowMapHeight = 1024;
         spotLight.shadowMapWidth = 1024;
