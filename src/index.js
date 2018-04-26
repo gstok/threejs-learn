@@ -21,6 +21,8 @@ let spotLight, hemisphereLight, ambientLight;
 //坐标系
 let axes;
 
+let custom;
+
 
 //datGUI控制的变量
 let controls = new function () {
@@ -151,7 +153,6 @@ let controls = new function () {
     },
 
     this.addFace = () => {
-        console.log("添加面");
 
         let vertices = [
             new THREE.Vector3(0, 0, 0),
@@ -177,14 +178,11 @@ let controls = new function () {
 
         let faces = [
             ...newRect(0, 1, 2, 3),
-            // ...newFace3(2, 1, 0),
-            // ...newFace3(1, 2, 3),
 
             ...newFace3(2, 3, 4),
             ...newFace3(0, 1, 4),
             ...newFace3(0, 2, 4),
             ...newFace3(1, 3, 4)
-            // new THREE.Face3(2, 3, 4)    
         ];
 
         let geometry = new THREE.Geometry();
@@ -193,13 +191,15 @@ let controls = new function () {
         geometry.computeFaceNormals();
 
         let material = new THREE.MeshStandardMaterial({
-            color: 0x9983e0
+            color: 0xff0000
         });
 
-        let custom = new THREE.Mesh(geometry, material);
+        custom = new THREE.Mesh(geometry, material);
 
         scene.add(custom);
-    }
+    },
+
+    this.customColor = 0x482fd8
 }
 
 //配置datGui
@@ -220,6 +220,10 @@ function datGuiConfig (datGui) {
     datGui.add(controls, "addCylinder");
     datGui.add(controls, "addCustomGeometry");
     datGui.add(controls, "addFace");
+    datGui.addColor(controls, "customColor").onChange((e) => {
+        let color = new THREE.Color(e);
+        custom.material.color = color;
+    });
 }
 
 //创建聚光灯光源
@@ -284,7 +288,7 @@ function createRender () {
 //向场景之中添加各种需展示的对象
 function addThings (scene) {
     //添加坐标系
-    axes = new THREE.AxesHelper(50);
+    axes = new THREE.AxesHelper(500);
     scene.add(axes);
     //在底部添加一个平面
     plane = createPlane();
