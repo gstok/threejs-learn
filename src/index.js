@@ -59,6 +59,38 @@ let controls = new function () {
         this.numberOfObjects = scene.children.length;    
     },
 
+    //添加立方体
+    this.addCube = () => {
+        let cubeSize = Math.ceil(Math.random() * 50) + 10; 
+        //创建立方体几何形状
+        let cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);  
+        //创建立方体材质
+        let cubeMaterial = new THREE.MeshStandardMaterial({
+            color: Math.floor(Math.random() * 0xffffff)
+        });
+        //根据几何与材质创建网孔
+        let cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+        cube.position.x = Math.random() * plane.geometry.parameters.width - 500;
+        cube.position.y = 100;
+        cube.position.z = Math.random() * plane.geometry.parameters.height - 500;
+        cube.name = "cube-" + scene.children.length;
+        scene.add(cube);
+        this.numberOfObjects = scene.children.length;
+    },
+    //删除立方体
+    this.removeCube = () => {
+        let meshList = scene.children.filter(item => item instanceof THREE.Mesh &&
+                                                     item.geometry instanceof THREE.BoxGeometry);
+        if (meshList.length > 0) {
+            scene.remove(meshList[meshList.length - 1]);
+            this.numberOfObjects = scene.children.length;
+        }
+    },
+    //输出场景内所有对象
+    this.outputObjects = () => {
+        console.log(scene.children);
+    },
+
     this.addCustomGeometry = () => {
         console.log("添加自定义几何体");
 
@@ -118,36 +150,55 @@ let controls = new function () {
         scene.add(custom);
     },
 
-    //添加立方体
-    this.addCube = () => {
-        let cubeSize = Math.ceil(Math.random() * 50) + 10; 
-        //创建立方体几何形状
-        let cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);  
-        //创建立方体材质
-        let cubeMaterial = new THREE.MeshStandardMaterial({
-            color: Math.floor(Math.random() * 0xffffff)
-        });
-        //根据几何与材质创建网孔
-        let cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-        cube.position.x = Math.random() * plane.geometry.parameters.width - 500;
-        cube.position.y = 100;
-        cube.position.z = Math.random() * plane.geometry.parameters.height - 500;
-        cube.name = "cube-" + scene.children.length;
-        scene.add(cube);
-        this.numberOfObjects = scene.children.length;
-    },
-    //删除立方体
-    this.removeCube = () => {
-        let meshList = scene.children.filter(item => item instanceof THREE.Mesh &&
-                                                     item.geometry instanceof THREE.BoxGeometry);
-        if (meshList.length > 0) {
-            scene.remove(meshList[meshList.length - 1]);
-            this.numberOfObjects = scene.children.length;
+    this.addFace = () => {
+        console.log("添加面");
+
+        let vertices = [
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(100, 0, 0),
+            new THREE.Vector3(0, 0, 100),
+            new THREE.Vector3(100, 0, 100),
+            new THREE.Vector3(50, 100, 50)
+        ];
+
+        function newFace3(a, b, c) {
+            return [
+                new THREE.Face3(a, b, c),
+                new THREE.Face3(b, a, c)
+            ];
         }
-    },
-    //输出场景内所有对象
-    this.outputObjects = () => {
-        console.log(scene.children);
+
+        function newRect(a, b, c, d) {
+            return [
+                ...newFace3(a, b, c),
+                ...newFace3(b, c, d)
+            ]
+        }
+
+        let faces = [
+            ...newRect(0, 1, 2, 3),
+            // ...newFace3(2, 1, 0),
+            // ...newFace3(1, 2, 3),
+
+            ...newFace3(2, 3, 4),
+            ...newFace3(0, 1, 4),
+            ...newFace3(0, 2, 4),
+            ...newFace3(1, 3, 4)
+            // new THREE.Face3(2, 3, 4)    
+        ];
+
+        let geometry = new THREE.Geometry();
+        geometry.vertices = vertices;
+        geometry.faces = faces;
+        geometry.computeFaceNormals();
+
+        let material = new THREE.MeshStandardMaterial({
+            color: 0x9983e0
+        });
+
+        let custom = new THREE.Mesh(geometry, material);
+
+        scene.add(custom);
     }
 }
 
@@ -168,6 +219,7 @@ function datGuiConfig (datGui) {
     datGui.add(controls, "outputObjects");
     datGui.add(controls, "addCylinder");
     datGui.add(controls, "addCustomGeometry");
+    datGui.add(controls, "addFace");
 }
 
 //创建聚光灯光源
