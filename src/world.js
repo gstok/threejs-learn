@@ -5,6 +5,7 @@ import ThreeStats from '../lib/three-stats.js';
 import { Stats, dat } from 'threejs-utils';
 import AsciiEffect from "three-asciieffect";
 import ThreeSceneUtils from "../lib/ThreeSceneUtils";
+import Point from "./point";
 
 class World {
     constructor (domElement) {
@@ -21,7 +22,16 @@ class World {
         //添加各种对象
         this.addThings();
         
-        
+
+        //顶点列表
+        this.points = [];
+        this.points.push(new Point(0, 0, 0));
+        this.points.push(new Point(200, 0, 0));
+        this.points.push(new Point(0, 0, 200));
+        this.points.push(new Point(200, 0, 200));
+        this.points.push(new Point(100, 250, 100));
+
+
         //创建添加渲染器
         this.renderer = this.createRenderer();
         
@@ -32,9 +42,91 @@ class World {
             this.onThreeResize();
         }, false);
 
-
         //添加各种插件
         this.addPlugin();
+
+        this.lightPosition = {
+            x: 0,
+            y: 0,
+            z: 0
+        };
+
+
+        this.points.forEach((item, index) => {
+            let folder = this.datGui.addFolder("顶点 " + (index + 1).toString());
+            folder.add(item, "x", -1000, +1000);
+            folder.add(item, "y", -1000, +1000);
+            folder.add(item, "z", -1000, +1000);
+        });
+
+        let lightFolder = this.datGui.addFolder("光源");
+        lightFolder.add(this.lightPosition, "x", -1000, +1000);
+        lightFolder.add(this.lightPosition, "y", -1000, +1000);
+        lightFolder.add(this.lightPosition, "z", -1000, +1000);
+    }
+
+
+    //创建自定义几何体
+    createCustomGeometry () {
+
+        // let boxGeometry = new THREE.BoxGeometry(100, 100, 100);
+        // let boxMaterials = [
+        //     new THREE.MeshBasicMaterial({
+        //         color: 0x000000,
+        //         wireframe: true
+        //     }),
+        //     new THREE.MeshStandardMaterial({
+        //         color: 0x769ef0
+        //     })
+        // ];
+
+        // let box = ThreeSceneUtils.createMultiMaterialObject(boxGeometry, boxMaterials);
+
+        // box.children.forEach(item => { item.castShadow = true; });
+        // box.children[0].translateX(10);
+        // box.children[0].translateY(10);
+        // box.children[0].translateZ(10);
+
+        // //box.castShadow = true;
+        // box.position.set(0, 100, 0);
+
+        // return box;
+
+
+
+        let vertices = [
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(200, 0, 0),
+            new THREE.Vector3(0, 0, 200),
+            new THREE.Vector3(200, 0, 200),
+            new THREE.Vector3(100, 250, 100)
+        ];
+        let faces = [
+            ...this.faceBord4(0, 1, 2, 3),
+            ...this.faceBord3(0, 1, 4),
+            ...this.faceBord3(1, 3, 4),
+            ...this.faceBord3(3, 2, 4),
+            ...this.faceBord3(0, 2, 4)
+        ];
+        let geometry = new THREE.Geometry();
+        geometry.vertices = vertices;
+        geometry.faces = faces;
+        geometry.computeFaceNormals();
+        let materials = [
+            new THREE.MeshStandardMaterial({
+                color: 0x9468e0
+            }),
+            new THREE.MeshBasicMaterial({
+                color: 0x000000,
+                wireframe: true,
+                wireframeLinewidth: 10
+            }),
+        ];
+        this.custom = ThreeSceneUtils.createMultiMaterialObject(geometry, materials);
+        this.custom.children.forEach(item => {
+            item.castShadow = true;
+        });
+        return this.custom;
     }
 
 
@@ -56,14 +148,11 @@ class World {
     //创建渲染器
     createRenderer () {
         let renderer = new THREE.WebGLRenderer();
-        renderer.setClearColor(0xf0f0f0);
+        renderer.setClearColor(0x87cefa);
         renderer.setSize(this.threeArea.clientWidth, this.threeArea.clientHeight);
         renderer.gammaInput = true;
         renderer.gammaOutput = true;
-        renderer.shadowMap.enabled = true;
         renderer.shadowMapEnabled = true;
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMapType = THREE.PCFSoftShadowMap;
         renderer.shadowMapType = THREE.PCFSoftShadowMap;
         this.threeArea.appendChild(renderer.domElement);
         return renderer;
@@ -133,6 +222,29 @@ class World {
         if (this.stats) {
             this.stats.update();
         }
+
+        // let points = [];
+        // points.push(new Point(0, 0, 0));
+        // points.push(new Point(200, 0, 0));
+        // points.push(new Point(0, 0, 200));
+        // points.push(new Point(200, 0, 200));
+        // points.push(new Point(100, 250, 100));
+        // console.log(points.map);
+        // console.log(this.points.map);
+
+        if (this.points) {
+            this.custom.children.forEach(item => {
+                item.geometry.vertices = this.points.map(item => item.toVector3());
+                item.geometry.verticesNeedUpdate = true;
+                item.geometry.computeFaceNormals();
+            });
+        }
+
+        if (this.lightPosition) {
+            this.spotLight.position.set(this.lightPosition.x, this.lightPosition.y, this.lightPosition.z);
+        }
+        
+
         requestAnimationFrame(() => {
             this.animate();
         });
@@ -186,67 +298,6 @@ class World {
         ];
     }
 
-    //创建自定义几何体
-    createCustomGeometry () {
-
-        let boxGeometry = new THREE.BoxGeometry(100, 100, 100);
-        let boxMaterials = [
-            new THREE.MeshBasicMaterial({
-                color: 0x000000,
-                wireframe: true
-            }),
-            new THREE.MeshStandardMaterial({
-                color: 0x769ef0
-            })
-        ];
-
-        let box = ThreeSceneUtils.createMultiMaterialObject(boxGeometry, boxMaterials);
-
-        box.children.forEach(item => { item.castShadow = true; });
-        box.children[0].translateX(10);
-        box.children[0].translateY(10);
-        box.children[0].translateZ(10);
-
-        //box.castShadow = true;
-        box.position.set(0, 100, 0);
-
-        return box;
-
-
-
-        // let vertices = [
-        //     new THREE.Vector3(0, 0, 0),
-        //     new THREE.Vector3(100, 0, 0),
-        //     new THREE.Vector3(0, 0, 100),
-        //     new THREE.Vector3(100, 0, 100),
-        //     new THREE.Vector3(50, 80, 50)
-        // ];
-        // let faces = [
-        //     ...this.faceBord4(0, 1, 2, 3),
-        //     ...this.faceBord3(0, 1, 4),
-        //     ...this.faceBord3(1, 3, 4),
-        //     ...this.faceBord3(3, 2, 4),
-        //     ...this.faceBord3(0, 2, 4)
-        // ];
-        // let geometry = new THREE.Geometry();
-        // geometry.vertices = vertices;
-        // geometry.faces = faces;
-        // geometry.computeFaceNormals();
-        // let materials = [
-        //     new THREE.MeshStandardMaterial({
-        //         color: 0x9468e0
-        //     }),
-        //     new THREE.MeshBasicMaterial({
-        //         color: 0x000000,
-        //         wireframe: true
-        //     }),
-        // ];
-        // let custom = ThreeSceneUtils.createMultiMaterialObject(geometry, materials);
-        // custom.children.forEach(item => {
-        //     item.castShadow = true;
-        // });
-        // return custom;
-    }
 
     //创建聚光灯光源
     createSpotLight () {
