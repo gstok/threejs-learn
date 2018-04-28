@@ -60,17 +60,15 @@ class World {
         renderer.setSize(this.threeArea.clientWidth, this.threeArea.clientHeight);
         renderer.gammaInput = true;
         renderer.gammaOutput = true;
-        
         renderer.shadowMap.enabled = true;
         renderer.shadowMapEnabled = true;
-
         renderer.shadowMap.enabled = true;
         renderer.shadowMapType = THREE.PCFSoftShadowMap;
-
         renderer.shadowMapType = THREE.PCFSoftShadowMap;
         this.threeArea.appendChild(renderer.domElement);
         return renderer;
-    }    
+    }
+
     //创建摄像机
     createCamera () {
         let camera = new THREE.PerspectiveCamera(45, this.threeArea.clientWidth / this.threeArea.clientHeight, 0.1, 10000);
@@ -79,6 +77,7 @@ class World {
         camera.position.z = 500;
         return camera;
     }
+
     //创建面板平面
     createPlane () {
         let planeGeometry = new THREE.PlaneGeometry(1000, 1000, 1, 1);
@@ -106,20 +105,8 @@ class World {
     //添加datGui
     addDatGui () {
         let datGui = new dat.GUI();
-
         datGui.add(this, "testNum", -100, 100);
         datGui.add(this, "myObj");
-        // datGui.add(this, "addCube");
-        // datGui.add(this, "numberOfObjects").listen();
-        // datGui.add(this, "removeCube");
-        // datGui.add(this, "outputObjects");
-        // datGui.add(this, "addCylinder");
-        // datGui.add(this, "addCustomGeometry");
-        // datGui.add(this, "addFace");
-        // datGui.addColor(this, "customColor").onChange((e) => {
-        //     let color = new THREE.Color(e);
-        //     //custom.material.color = color;
-        // });
         return datGui;
     }
     //添加轨道控制器
@@ -168,13 +155,16 @@ class World {
         //在底部添加一个平面
         this.plane = this.createPlane();
         this.scene.add(this.plane);
+
         //添加聚光灯光源
         this.spotLight = this.createSpotLight();
         this.scene.add(this.spotLight);
-        // //添加半球光源
-        // this.hemisphereLight = this.createHemisphereLight();
-        // this.scene.add(this.hemisphereLight);
-        // //添加环境光源
+
+        //添加半球光源
+        this.hemisphereLight = this.createHemisphereLight();
+        this.scene.add(this.hemisphereLight);
+
+        //添加环境光源
         // this.ambientLight = this.createAmbientLight();
         // this.scene.add(this.ambientLight);
 
@@ -200,11 +190,24 @@ class World {
     createCustomGeometry () {
 
         let boxGeometry = new THREE.BoxGeometry(100, 100, 100);
-        let boxMaterial = new THREE.MeshStandardMaterial({
-            color: 0x2387d0
-        });
-        let box = new THREE.Mesh(boxGeometry, boxMaterial);
-        box.castShadow = true;
+        let boxMaterials = [
+            new THREE.MeshBasicMaterial({
+                color: 0x000000,
+                wireframe: true
+            }),
+            new THREE.MeshStandardMaterial({
+                color: 0x769ef0
+            })
+        ];
+
+        let box = ThreeSceneUtils.createMultiMaterialObject(boxGeometry, boxMaterials);
+
+        box.children.forEach(item => { item.castShadow = true; });
+        box.children[0].translateX(10);
+        box.children[0].translateY(10);
+        box.children[0].translateZ(10);
+
+        //box.castShadow = true;
         box.position.set(0, 100, 0);
 
         return box;
@@ -250,6 +253,8 @@ class World {
         let spotLight = new THREE.SpotLight(0xffffff);
         spotLight.position.set(-100, 600, 400);
         spotLight.castShadow = true;
+        //设置阴影投影远景距离
+        spotLight.shadowCameraFar = 2000;
         spotLight.shadowMapHeight = 1024;
         spotLight.shadowMapWidth = 1024;
         return spotLight;
@@ -262,7 +267,7 @@ class World {
     }
     //创建环境光源
     createAmbientLight () {
-        let ambientLight = new THREE.AmbientLight(0xfefefe);
+        let ambientLight = new THREE.AmbientLight(0x505050);
         return ambientLight;
     }
 };
