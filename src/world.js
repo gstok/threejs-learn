@@ -47,8 +47,8 @@ class World {
 
         this.lightPosition = {
             x: 0,
-            y: 0,
-            z: 0
+            y: 500,
+            z: 500
         };
 
 
@@ -234,9 +234,16 @@ class World {
 
         if (this.points) {
             this.custom.children.forEach(item => {
-                item.geometry.vertices = this.points.map(item => item.toVector3());
+                let newVertices = this.points.map(item => item.toVector3());
+                for (let i = 0; i < newVertices.length; ++i) {
+                    item.geometry.vertices[i].x = newVertices[i].x;
+                    item.geometry.vertices[i].y = newVertices[i].y;
+                    item.geometry.vertices[i].z = newVertices[i].z;
+                }
+                // item.geometry.vertices = this.points.map(item => item.toVector3());
                 item.geometry.verticesNeedUpdate = true;
                 item.geometry.computeFaceNormals();
+                item.geometry.dynamic = true;
             });
         }
 
